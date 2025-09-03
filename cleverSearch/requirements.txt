@@ -9,3 +9,4 @@ transformers
 flask_cors
 faiss-cpu
 numpy
+psycopg2
