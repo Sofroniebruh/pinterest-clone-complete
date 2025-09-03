@@ -5,7 +5,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y libgl1 libglib2.0-0
 
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir --retries 5 --timeout 1000 -r requirements.txt
 
 COPY . .
 
