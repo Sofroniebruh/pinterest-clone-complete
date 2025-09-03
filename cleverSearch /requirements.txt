@@ -6,5 +6,6 @@ Pillow
 requests
 torch
 transformers
+flask_cors
 faiss-cpu
 numpy
