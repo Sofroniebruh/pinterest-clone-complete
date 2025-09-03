@@ -1,0 +1,10 @@
+flask
+flask_sqlalchemy
+pgvector
+python-dotenv
+Pillow
+requests
+torch
+transformers
+faiss-cpu
+numpy

@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+model User {
+  id          Int           @id @default(autoincrement())
+  email       String        @unique
+  password    String?
+  username    String?
+  likedPosts  Post[]
+  comments    Comment[]
+  pfpUrl      String?
+  likes       Like[]
+  CommentLike CommentLike[]
+}
+
+model Post {
+  id           Int                         @id @default(autoincrement())
+  createdBy    User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
+  postName     String
+  description  String?
+  likes        Like[]
+  comments     Comment[]
+  postImageUrl String
+  createdAt    DateTime                    @default(now())
+  updatedAt    DateTime?
+  tagAndPosts  TagAndPosts[]
+  embedding    Unsupported("vector(512)")?
+}
+
+model Like {
+  userLiked User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  postLiked Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    Int
+
+  @@id([userId, postId])
+}
+
+model CommentLike {
+  userLiked    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
+  commentLiked Comment @relation("CommentToLikes", fields: [commentId], references: [id], onDelete: Cascade)
+  commentId    Int
+
+  @@id([userId, commentId])
+}
+
+model Tags {
+  id          Int           @id @default(autoincrement())
+  tagName     String        @unique
+  tagAndPosts TagAndPosts[]
+}
+
+model TagAndPosts {
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId Int
+  tag    Tags @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId  Int
+
+  @@id([tagId, postId])
+}
+
+model Comment {
+  id             Int           @id @default(autoincrement())
+  commentOwner   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         Int
+  commentContent String
+  postCommented  Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId         Int
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now())
+  likes          CommentLike[] @relation("CommentToLikes")
+}
