@@ -19,7 +19,7 @@ services:
       - redis_data:/data
 
   frontend:
-    build: ./auth-project
+    build: ./pinterest-next
     ports:
       - "3000:3000"
     networks:
