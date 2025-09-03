@@ -11,8 +11,6 @@ yarn-error.log
 .gitignore
 
 # Environment variables
-.env
-.env.local
 
 # Build output
 .next
