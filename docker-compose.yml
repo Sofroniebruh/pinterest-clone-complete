@@ -20,7 +20,7 @@ services:
     build: ./pinterest-next
     ports:
       - "3001:3000"
-    environment:
+    env_file:
       - ./pinterest-next/.env
     networks:
       - private
@@ -34,7 +34,7 @@ services:
     build: ./cleverSearch
     ports:
       - "5050:5050"
-    environment:
+    env_file:
       - ./cleverSearch/.env
     networks:
       - private
