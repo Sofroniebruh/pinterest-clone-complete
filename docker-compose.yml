@@ -25,6 +25,10 @@ services:
     networks:
       - private
       - public
+    volumes:
+      - ./pinterest-next:/app
+      - /app/node_modules 
+      - /app/.next
     restart: always
     depends_on:
       - backend
@@ -44,7 +48,7 @@ services:
       - db
 
   db:
-    image: postgres:15
+    image: pgvector/pgvector:pg15
     restart: always
     ports:
       - "5432"
@@ -76,13 +80,14 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
-    #  - "443:443"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/proxy_params:/etc/nginx/proxy_params:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-     # - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
       - ./nginx/logs:/var/log/nginx
+      - ./nginx/letsencrypt:/etc/letsencrypt:ro
     networks:
       - private
       - public
