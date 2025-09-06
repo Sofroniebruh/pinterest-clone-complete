@@ -44,7 +44,7 @@ export default function RequestPasswordChangePage() {
                   <p className={'text-sm text-red-500'}>{form.formState.errors.email.message}</p>)}
               </div>
               <Button type={'submit'} size={'lg'}
-                      className={'bg-blue-600 cursor-pointer shadow-sm text-base w-full'}>Send
+                      className={'bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-sm text-base w-full'}>Send
                 link</Button>
             </div>
           </div>

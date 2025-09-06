@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
       const customToken = signJWT({ email: user.email });
       (await cookies()).set('jwt', customToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false,
         sameSite: 'lax',
         path: '/',
         maxAge: 60 * 60 * 24,

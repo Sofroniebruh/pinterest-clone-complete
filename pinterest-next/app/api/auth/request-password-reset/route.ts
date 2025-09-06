@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateResetJWT } from '@/lib/auth/jwt-actions';
-import { getUserByToken } from '@/lib/helpers/helper-functions';
+import { prismaClient } from '@/prisma/prisma-client';
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getUserByToken(req);
+    const userEmail = await req.json() as { email: string };
+
+    const user = await prismaClient.user.findUnique({
+      where: {
+        email: userEmail.email,
+      },
+    });
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -13,8 +19,24 @@ export async function POST(req: NextRequest) {
     const token = generateResetJWT({ email: user.email, id: user.id });
     const resetLink = `${process.env.NEXT_PUBLIC_ROUTE}/forgot-password?token=${token}`;
 
-    console.log(resetLink);
-    //TODO: ADD SENDING EMAILS WITH TWILLO
+    const res = await fetch(`${process.env.AWS_API_GATEWAY_URL}/send-email-with-link`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.API_GATEWAY_KEY!,
+      },
+      body: JSON.stringify(
+        {
+          email: user.email,
+          subject: 'Reset your password',
+          messageBody: resetLink,
+        },
+      ),
+    });
+
+    if (!res.ok) {
+      throw new Error(res.statusText);
+    }
 
     return NextResponse.json({ message: 'Successfully sent' }, { status: 200 });
   } catch (error) {

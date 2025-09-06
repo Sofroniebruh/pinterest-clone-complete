@@ -27,9 +27,10 @@ export default function ForgotPasswordPage() {
   }
 
   const onSubmit = async (data: TwoPasswordsSchemaType) => {
-    if (await API.passwordActions.passwordReset(data.password, token)) {
+    const res = await API.passwordActions.passwordReset(data.password, token);
+    if (res.isOk) {
       toast.success('Password has been reset successfully');
-      router.push('/profile');
+      router.push(`/profile/${res.user.id}`);
 
       return;
     }
@@ -59,7 +60,7 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
             <Button type={'submit'} size={'lg'}
-                    className={'bg-blue-600 cursor-pointer shadow-sm text-base w-full'}>Submit</Button>
+                    className={'bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-sm text-base w-full'}>Submit</Button>
           </div>
         </form>
       </CommonCard>
