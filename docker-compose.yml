@@ -51,7 +51,7 @@ services:
     image: pgvector/pgvector:pg15
     restart: always
     ports:
-      - "5432"
+      - "5432:5432"
     networks:
       - private
     environment:
