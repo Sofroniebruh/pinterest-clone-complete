@@ -16,7 +16,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    await prismaClient.resetToken.updateMany({
+      where: {
+        userId: user.id,
+        used: false,
+      },
+      data: {
+        used: true,
+      },
+    });
+
     const token = generateResetJWT({ email: user.email, id: user.id });
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+
+    await prismaClient.resetToken.create({
+      data: {
+        token,
+        userId: user.id,
+        expiresAt,
+      },
+    });
+
     const resetLink = `${process.env.NEXT_PUBLIC_ROUTE}/forgot-password?token=${token}`;
 
     const res = await fetch(`${process.env.AWS_API_GATEWAY_URL}/send-email-with-link`, {

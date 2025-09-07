@@ -25,6 +25,7 @@ model User {
   pfpUrl      String?
   likes       Like[]
   CommentLike CommentLike[]
+  resetTokens ResetToken[]
 }
 
 model Post {
@@ -85,4 +86,14 @@ model Comment {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @default(now())
   likes          CommentLike[] @relation("CommentToLikes")
+}
+
+model ResetToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  used      Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }

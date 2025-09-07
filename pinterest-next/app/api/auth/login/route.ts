@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     res.cookies.set('jwt', token, {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24,

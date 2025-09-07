@@ -17,6 +17,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const resetToken = await prismaClient.resetToken.findUnique({
+      where: { token },
+      include: { user: true },
+    });
+
+    if (!resetToken || resetToken.used || resetToken.expiresAt < new Date()) {
+      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+    }
+
     const payload = await verifyJWT(token);
 
     if (!payload) {
@@ -25,18 +34,14 @@ export async function POST(req: NextRequest) {
 
     const { email, id } = payload as { email: string; id: number };
 
-    const user = await prismaClient.user.findUnique(
-      {
-        where: {
-          email,
-          id,
-        },
-      },
-    );
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    if (resetToken.user.email !== email || resetToken.user.id !== id) {
+      return NextResponse.json({ error: 'Token mismatch' }, { status: 401 });
     }
+
+    await prismaClient.resetToken.update({
+      where: { token },
+      data: { used: true },
+    });
 
     const updatedUser = await prismaClient.user.update({
       where: {
@@ -47,14 +52,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const newToken = signJWT({ email: user.email, id: user.id });
+    const newToken = signJWT({ email: resetToken.user.email, id: resetToken.user.id });
     const { password: _, ...safeUser } = updatedUser;
 
     const res = NextResponse.json({ message: 'Password updated successfully', user: safeUser }, { status: 200 });
     res.cookies.set('jwt', newToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24,
     });
