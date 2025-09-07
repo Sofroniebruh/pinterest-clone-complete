@@ -1,9 +1,9 @@
 import { PostsWithLikedByCurrentUser } from '@/lib/helpers/helper-types-or-interfaces';
 import { PostData } from '@/lib/api-client/change-user-info';
 
-export async function getPosts(query: string, isSearch: boolean) {
-  const url = isSearch ? `${process.env.NEXT_PUBLIC_API_ROUTE}/posts?search=${query}` :
-    `${process.env.NEXT_PUBLIC_API_ROUTE}/posts?tag=${query}`
+export async function getPosts(query: string, isSearch: boolean, lastId?: number | null) {
+  const url = isSearch ? `${process.env.NEXT_PUBLIC_API_ROUTE}/posts?search=${query}&lastId=${lastId}` :
+    `${process.env.NEXT_PUBLIC_API_ROUTE}/posts?tag=${query}&lastId=${lastId}`;
   const res = await fetch(url, {
     method: 'GET',
   });
@@ -15,8 +15,8 @@ export async function getPosts(query: string, isSearch: boolean) {
   throw new Error(res.statusText);
 }
 
-export async function getPostsWithoutOpenedPost(id: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/posts?excluding=${id}`, {
+export async function getPostsWithoutOpenedPost(id: string, lastId?: number | null) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/posts?excluding=${id}&lastId=${lastId}`, {
     method: 'GET',
   });
 

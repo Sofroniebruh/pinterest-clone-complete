@@ -90,6 +90,7 @@ export async function DELETE(req: NextRequest, { params }: {
 
     res.cookies.set('jwt', '', {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
       path: '/',
       expires: new Date(0),
     });

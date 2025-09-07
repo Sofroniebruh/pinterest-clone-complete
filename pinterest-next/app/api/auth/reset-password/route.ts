@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     const res = NextResponse.json({ message: 'Password updated successfully', user: safeUser }, { status: 200 });
     res.cookies.set('jwt', newToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24,

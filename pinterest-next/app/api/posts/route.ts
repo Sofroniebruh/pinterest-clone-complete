@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
         url: post.postImageUrl,
       }),
     });
-    console.log("Id", post.id)
+    console.log('Id', post.id);
     console.log(embedded);
     if (!embedded) {
       return NextResponse.json({ error: 'Failed to save embedded vector', post }, { status: 500 });
@@ -58,6 +58,7 @@ export async function GET(req: NextRequest) {
     const postIdToSkip = req.nextUrl.searchParams.get('excluding');
     const tag = req.nextUrl.searchParams.get('tag');
     const search = req.nextUrl.searchParams.get('search');
+    const lastId = req.nextUrl.searchParams.get('lastId');
     const user = await getUserByToken(req);
     let allPosts;
 
@@ -71,6 +72,9 @@ export async function GET(req: NextRequest) {
 
     if (tag) {
       allPosts = await prismaClient.post.findMany({
+        take: 50,
+        skip: lastId ? 1 : 0,
+        cursor: Number(lastId) ? { id: Number(lastId) } : undefined,
         where: {
           tagAndPosts: {
             some: {
@@ -86,6 +90,9 @@ export async function GET(req: NextRequest) {
           }),
         },
         include: baseInclude,
+        orderBy: {
+          id: 'desc',
+        },
       });
     } else if (search) {
       const res = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_ROUTE}/search`, {
@@ -95,6 +102,7 @@ export async function GET(req: NextRequest) {
         },
         body: JSON.stringify({
           query: search,
+          lastId: lastId ? Number(lastId) : null,
         }),
       });
       const ids: number[] = [];
@@ -103,15 +111,29 @@ export async function GET(req: NextRequest) {
         ids.push(result.id);
       }
       allPosts = await prismaClient.post.findMany({
+        take: 50,
+        skip: lastId ? 1 : 0,
+        cursor: Number(lastId) ? { id: Number(lastId) } : undefined,
         where: {
           id: {
             in: ids,
           },
+          ...(postIdToSkip && {
+            NOT: {
+              id: Number(postIdToSkip),
+            },
+          }),
         },
         include: baseInclude,
+        orderBy: {
+          id: 'desc',
+        },
       });
     } else {
       allPosts = await prismaClient.post.findMany({
+        take: 50,
+        skip: lastId ? 1 : 0,
+        cursor: Number(lastId) ? { id: Number(lastId) } : undefined,
         where: postIdToSkip
           ? {
             NOT: {
@@ -120,6 +142,9 @@ export async function GET(req: NextRequest) {
           }
           : undefined,
         include: baseInclude,
+        orderBy: {
+          id: 'desc',
+        },
       });
     }
 
