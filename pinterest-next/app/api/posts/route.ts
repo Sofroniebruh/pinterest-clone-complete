@@ -29,19 +29,28 @@ export async function POST(req: NextRequest) {
       await validateReceivedHashtags(post, data.selectedTags);
     }
 
-    const embedded = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_ROUTE}/add/${post.id}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url: post.postImageUrl,
-      }),
-    });
-    console.log('Id', post.id);
-    console.log(embedded);
-    if (!embedded) {
-      return NextResponse.json({ error: 'Failed to save embedded vector', post }, { status: 500 });
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_ROUTE}/add/${post.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: post.postImageUrl,
+        }),
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        return NextResponse.json({ error: `Embedding creation failed: ${errorText}` }, { status: res.status });
+      }
+
+      const responseData = await res.json();
+    } catch (e) {
+      if (e instanceof Error) {
+        return NextResponse.json({ error: `Network error: ${e.message}` }, { status: 500 });
+      }
+
+      return NextResponse.json({ error: `Unknown error: ${e}` }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'Post was created successfully', post }, { status: 200 });

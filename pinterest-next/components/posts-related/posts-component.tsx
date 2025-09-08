@@ -23,7 +23,7 @@ export const PostsComponent = ({ isPostPage, postId }: Props) => {
   const tag = searchParams.get('tag');
   const search = searchParams.get('search');
   const endPageDiv = useRef<HTMLDivElement>(null);
-  const [lastPostId, setLastPostId] = useState<number | null>(null);
+  const [lastPostId, setLastPostId] = useState<number | undefined>();
 
   const fetchPosts = async (isInitialLoad = false) => {
     if (loadingMore && !isInitialLoad) return;
@@ -59,7 +59,7 @@ export const PostsComponent = ({ isPostPage, postId }: Props) => {
   useEffect(() => {
     setHasMounted(true);
     setLoadedPosts([]);
-    setLastPostId(null);
+    setLastPostId(undefined);
     setHasMore(true);
     setLoading(true);
     fetchPosts(true);
