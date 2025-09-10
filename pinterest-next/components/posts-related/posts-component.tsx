@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { API } from '@/lib/api-client/api';
 import { MasonryLayout } from '@/components/common';
 import { Loading, NoPosts } from '@/components/posts-related/shared';
@@ -25,7 +25,7 @@ export const PostsComponent = ({ isPostPage, postId }: Props) => {
   const endPageDiv = useRef<HTMLDivElement>(null);
   const [lastPostId, setLastPostId] = useState<number | undefined>();
 
-  const fetchPosts = async (isInitialLoad = false) => {
+  const fetchPosts = useCallback(async (isInitialLoad = false) => {
     if (loadingMore && !isInitialLoad) return;
     
     if (!isInitialLoad) setLoadingMore(true);
@@ -54,7 +54,7 @@ export const PostsComponent = ({ isPostPage, postId }: Props) => {
         setLoadingMore(false);
       }
     }
-  };
+  }, [isPostPage, postId, lastPostId, tag, search, loadingMore]);
 
   useEffect(() => {
     setHasMounted(true);
@@ -62,8 +62,13 @@ export const PostsComponent = ({ isPostPage, postId }: Props) => {
     setLastPostId(undefined);
     setHasMore(true);
     setLoading(true);
-    fetchPosts(true);
   }, [tag, search]);
+
+  useEffect(() => {
+    if (hasMounted && loading) {
+      fetchPosts(true);
+    }
+  }, [hasMounted, loading, fetchPosts]);
 
   useEffect(() => {
     if (!endPageDiv.current || !hasMore || loadingMore) return;

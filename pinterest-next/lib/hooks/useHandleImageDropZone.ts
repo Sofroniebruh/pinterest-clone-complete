@@ -38,6 +38,13 @@ export const useHandleImageDropZone = ({ isPfp, id }: Props) => {
     setOpenState(false);
     setIsLoading(true);
     const file: File = acceptedFile[0];
+    
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      setIsLoading(false);
+      return;
+    }
+    
     isPfp ? handleImage(file) : setUploadedFile(file);
   }, []);
 
@@ -56,7 +63,24 @@ export const useHandleImageDropZone = ({ isPfp, id }: Props) => {
     setIsLoading(false);
   };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+    onDrop,
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp']
+    },
+    maxSize: 5 * 1024 * 1024,
+    onDropRejected: (fileRejections) => {
+      const error = fileRejections[0]?.errors[0];
+      if (error?.code === 'file-too-large') {
+        toast.error('Image size must be less than 5MB');
+      } else if (error?.code === 'file-invalid-type') {
+        toast.error('Please upload a valid image file');
+      } else {
+        toast.error('File upload failed');
+      }
+      setIsLoading(false);
+    }
+  });
 
   return {
     getRootProps,

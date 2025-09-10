@@ -16,11 +16,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/components/contexts/auth-context';
 import { TagsWithIsCreated } from '@/lib/helpers/helper-types-or-interfaces';
 import { TagsComponent } from '@/components/posts-related/tags-component';
+import { LoaderCircleIcon } from 'lucide-react';
 
 export const NewPostComponent = () => {
   const { user } = useAuth();
   const [selectedTags, setSelectedTags] = useState<TagsWithIsCreated[] | []>([]);
   const [isNotEnteredTags, setIsNotEnteredTags] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const {
     getInputProps,
     isDragActive,
@@ -52,13 +54,16 @@ export const NewPostComponent = () => {
   }, [previewImage]);
 
   const onSubmit = async (data: PostSchemaType) => {
-    const image = await API.uploadImage.uploadPublicImage(uploadedFile!);
+    setLoading(true);
+    
+    try {
+      const image = await API.uploadImage.uploadPublicImage(uploadedFile!);
 
-    if (!image || image instanceof Error) {
-      toast.error('Image upload failed');
-
-      return;
-    }
+      if (!image || image instanceof Error) {
+        toast.error('Image upload failed');
+        setLoading(false);
+        return;
+      }
 
     if (!selectedTags) {
       setIsNotEnteredTags(true);
@@ -71,14 +76,20 @@ export const NewPostComponent = () => {
       selectedTags: selectedTags,
     };
 
-    if (await API.changeUserInfo.createUserPost(newPostData)) {
-      toast.success('Post was created successfully');
-      router.push(`/profile/${user!.id}`);
+      if (await API.changeUserInfo.createUserPost(newPostData)) {
+        toast.success('Post was created successfully');
+        router.push(`/profile/${user!.id}`);
+        setLoading(false);
+        return;
+      }
 
-      return;
+      toast.error('Error creating post');
+      setLoading(false);
+    } catch (error) {
+      console.error('Post creation failed:', error);
+      toast.error('Error creating post');
+      setLoading(false);
     }
-
-    toast.error('Error creating post');
   };
 
   const handleResetImage = () => {
@@ -132,8 +143,17 @@ export const NewPostComponent = () => {
                    placeholder="Enter description..." />
           </div>
 
-          <Button disabled={isFileEmpty} size={'lg'} type="submit"
-                  className="mt-4 bg-blue-600 hover:bg-blue-700 w-[200px]">Create</Button>
+          <Button disabled={isFileEmpty || loading} size={'lg'} type="submit"
+                  className="mt-4 bg-blue-600 hover:bg-blue-700 w-[200px] relative">
+            {loading ? (
+              <>
+                <LoaderCircleIcon className="animate-spin w-4 h-4 mr-2" />
+                Creating...
+              </>
+            ) : (
+              "Create"
+            )
+            }</Button>
         </form>
       </FormProvider>
     </div>
